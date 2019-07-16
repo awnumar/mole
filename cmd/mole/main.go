@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"syscall"
 
 	"github.com/awnumar/memguard"
 	"github.com/davrodpin/mole/cli"
@@ -233,7 +232,13 @@ func start(app *cli.App) error {
 		"options": app.String(),
 	}).Debug("cli options")
 
-	s, err := tunnel.NewServer(app.Server.User, app.Server.Address(), app.Key)
+	fmt.Printf("Enter password for private key (leave blank for none): ")
+	p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
+		return err
+	}
+
+	s, err := tunnel.NewServer(app.Server.User, app.Server.Address(), app.Key, p)
 	if err != nil {
 		log.Errorf("error processing server options: %v\n", err)
 
@@ -241,14 +246,6 @@ func start(app *cli.App) error {
 	}
 
 	s.Insecure = app.InsecureMode
-
-	s.Key.HandlePassphrase(func() ([]byte, error) {
-		fmt.Printf("The key provided is secured by a password. Please provide it below:\n")
-		fmt.Printf("Password: ")
-		p, err := terminal.ReadPassword(int(syscall.Stdin))
-		fmt.Printf("\n")
-		return p, err
-	})
 
 	log.Debugf("server: %s", s)
 

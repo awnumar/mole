@@ -25,8 +25,8 @@ var publicKeyPath string
 var knownHostsPath string
 
 func TestServerOptions(t *testing.T) {
-	k1, _ := NewPemKey("testdata/.ssh/id_rsa", "")
-	k2, _ := NewPemKey("testdata/.ssh/other_key", "")
+	k1, _ := NewPemKey("testdata/.ssh/id_rsa", []byte{})
+	k2, _ := NewPemKey("testdata/.ssh/other_key", []byte{})
 
 	tests := []struct {
 		user          string
@@ -93,7 +93,7 @@ func TestServerOptions(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		s, err := NewServer(test.user, test.address, test.key)
+		s, err := NewServer(test.user, test.address, test.key, []byte{})
 		if err != nil {
 			if test.expectedError != nil {
 				if test.expectedError.Error() != err.Error() {
@@ -334,7 +334,7 @@ func TestBuildSSHChannels(t *testing.T) {
 // through the tunnel.
 func prepareTunnel(t *testing.T, remotes int, insecure bool) *Tunnel {
 	ssh := createSSHServer(keyPath)
-	srv, _ := NewServer("mole", ssh.Addr().String(), "")
+	srv, _ := NewServer("mole", ssh.Addr().String(), "", []byte{})
 
 	srv.Insecure = insecure
 
